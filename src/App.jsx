@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import TopBar from './components/TopBar';
 import SelectedPriorityBanner from './components/SelectedPriorityBanner';
 import IdeaInputForm from './components/IdeaInputForm';
+import Quadrant3DMatrix from './components/Quadrant3DMatrix';
 import { loadIdeas, saveIdeas, resetToSeedData } from './services/storageService';
 import { enrichAll, getSelectedPriorityIdea, groupByQuadrant } from './utils/quadrantLogic';
 
@@ -10,6 +11,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isResetting, setIsResetting] = useState(false);
   const [hoveredIdea, setHoveredIdea] = useState(null);
+  const [selectedIdeaId, setSelectedIdeaId] = useState(null);
 
   // Initialize data on mount
   useEffect(() => {
@@ -84,7 +86,14 @@ export default function App() {
             {/* 2. Architectural Winner Banner */}
             <SelectedPriorityBanner idea={winnerIdea} />
 
-            {/* 3. Primary Grid: Input Form & Quadrant Distribution Overview */}
+            {/* 3. Interactive 3D Quadrant Matrix */}
+            <Quadrant3DMatrix
+              enrichedIdeas={enrichedIdeas}
+              selectedIdeaId={selectedIdeaId}
+              onSelectIdea={setSelectedIdeaId}
+            />
+
+            {/* 4. Primary Grid: Input Form & Quadrant Distribution Overview */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               {/* Left Column: Form (5 Cols) */}
               <div className="lg:col-span-5">
