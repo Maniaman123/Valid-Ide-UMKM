@@ -1,0 +1,156 @@
+/* ── Google Fonts ───────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Design-system base ─────────────────────────────────────────────────── */
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-canvas text-ink font-sans antialiased;
+    font-feature-settings: 'kern' 1, 'liga' 1, 'tnum' 1;
+  }
+
+  /* Tabular numerals everywhere monospace appears */
+  .font-mono,
+  [data-numeric] {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+  }
+
+  /* 1 px hairline borders on surfaces */
+  .surface-card {
+    @apply bg-surface border border-border rounded-lg;
+  }
+
+  /* Minimum 44 px interactive targets */
+  button,
+  [role='button'],
+  input,
+  select,
+  textarea,
+  label[for] {
+    min-height: 44px;
+  }
+
+  /* ── Smooth focus rings ─────────────────────────────────────────────── */
+  :focus-visible {
+    outline: 2px solid #C85A32;
+    outline-offset: 2px;
+  }
+}
+
+/* ── Utility layer additions ────────────────────────────────────────────── */
+@layer utilities {
+  /* Quadrant badge helpers */
+  .badge-q1 {
+    color: #14532D;
+    background-color: #ECFDF5;
+    border: 1px solid #86EFAC;
+  }
+  .badge-q2 {
+    color: #1E3A8A;
+    background-color: #EFF6FF;
+    border: 1px solid #93C5FD;
+  }
+  .badge-q3 {
+    color: #78350F;
+    background-color: #FFFBEB;
+    border: 1px solid #FCD34D;
+  }
+  .badge-q4 {
+    color: #334155;
+    background-color: #F1F5F9;
+    border: 1px solid #CBD5E1;
+  }
+}
+
+/* ── Print / A4 PDF rules ───────────────────────────────────────────────── */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 18mm 15mm 18mm 15mm;
+  }
+
+  /* Hide interactive chrome */
+  [data-no-print],
+  .no-print,
+  button,
+  [role='button'],
+  nav,
+  aside,
+  dialog,
+  [data-radix-popper-content-wrapper],
+  [data-floating-ui-portal],
+  .print-hide {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #171615 !important;
+    font-size: 10pt;
+    line-height: 1.5;
+  }
+
+  /* Flatten surfaces for print */
+  .surface-card,
+  [class*='shadow'] {
+    box-shadow: none !important;
+    border: 1px solid #E2DDD5 !important;
+    break-inside: avoid;
+  }
+
+  /* Quadrant matrix: render as a simple 2×2 grid */
+  [data-quadrant-matrix] {
+    page-break-before: auto;
+    break-inside: avoid;
+  }
+
+  /* Ensure full-width table rows */
+  table {
+    width: 100% !important;
+    border-collapse: collapse;
+  }
+
+  th,
+  td {
+    border: 1px solid #E2DDD5;
+    padding: 4pt 6pt;
+    font-size: 9pt;
+  }
+
+  h1 { font-size: 16pt; }
+  h2 { font-size: 13pt; }
+  h3 { font-size: 11pt; }
+
+  /* Keep URLs visible for printed hyperlinks */
+  a[href]::after {
+    content: ' (' attr(href) ')';
+    font-size: 8pt;
+    color: #6B655E;
+  }
+
+  /* Avoid orphans/widows */
+  p, li {
+    orphans: 3;
+    widows: 3;
+  }
+}
+
