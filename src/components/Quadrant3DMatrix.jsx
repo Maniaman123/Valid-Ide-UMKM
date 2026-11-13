@@ -135,7 +135,7 @@ function AxisGrid() {
             <cylinderGeometry args={[0.012, 0.012, 0.12, 6]} />
             <meshStandardMaterial color="#6B655E" roughness={1} />
           </mesh>
-          <Html center distanceFactor={6} style={{ pointerEvents: 'none' }}>
+          <Html center distanceFactor={6} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
             <span style={{
               fontFamily: '"JetBrains Mono", monospace',
               fontSize: '8px',
@@ -153,7 +153,7 @@ function AxisGrid() {
             <cylinderGeometry args={[0.012, 0.012, 0.12, 6]} />
             <meshStandardMaterial color="#6B655E" roughness={1} />
           </mesh>
-          <Html center distanceFactor={6} style={{ pointerEvents: 'none' }}>
+          <Html center distanceFactor={6} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
             <span style={{
               fontFamily: '"JetBrains Mono", monospace',
               fontSize: '8px',
@@ -165,7 +165,7 @@ function AxisGrid() {
       ))}
 
       {/* Axis labels */}
-      <Html position={[0, FLOOR_Y, -halfLen - 0.95]} center distanceFactor={5} style={{ pointerEvents: 'none' }}>
+      <Html position={[0, FLOOR_Y, -halfLen - 0.95]} center distanceFactor={5} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
         <span style={{
           fontFamily: '"JetBrains Mono", monospace',
           fontSize: '9px',
@@ -177,7 +177,7 @@ function AxisGrid() {
         }}>FEASIBILITY (1–5)</span>
       </Html>
 
-      <Html position={[-halfLen - 0.95, FLOOR_Y, 0]} center distanceFactor={5} style={{ pointerEvents: 'none' }}>
+      <Html position={[-halfLen - 0.95, FLOOR_Y, 0]} center distanceFactor={5} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
         <span style={{
           fontFamily: '"JetBrains Mono", monospace',
           fontSize: '9px',
@@ -203,6 +203,7 @@ function AxisGrid() {
           position={[toPos(x), FLOOR_Y + 0.04, toPos(z)]}
           center
           distanceFactor={7}
+          zIndexRange={[10, 0]}
           style={{ pointerEvents: 'none' }}
         >
           <span style={{
@@ -219,7 +220,7 @@ function AxisGrid() {
       ))}
 
       {/* Y axis title at top */}
-      <Html position={[halfLen + 0.6, 2.9, 0]} center distanceFactor={6} style={{ pointerEvents: 'none' }}>
+      <Html position={[halfLen + 0.6, 2.9, 0]} center distanceFactor={6} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
         <span style={{
           fontFamily: '"JetBrains Mono", monospace',
           fontSize: '8px',
@@ -309,6 +310,7 @@ function IdeaNode({ idea, offsetX, offsetZ, isSelected, isHovered, onClick, onPo
         position={[0, height + 0.38, 0]}
         center
         distanceFactor={5}
+        zIndexRange={[10, 0]}
         style={{ pointerEvents: 'none' }}
       >
         <div style={{
@@ -448,7 +450,7 @@ export default function Quadrant3DMatrix({ enrichedIdeas = [], selectedIdeaId, o
   ];
 
   return (
-    <section aria-label="Matriks 3D Kuadran LKPD 6" className="surface-card mb-6 overflow-hidden">
+    <section aria-label="Matriks 3D Kuadran LKPD 6" className="surface-card mb-6 overflow-hidden relative z-0 isolate">
       {/* Card header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-5 py-3.5 border-b border-border print-hide">
         <div>
@@ -480,7 +482,7 @@ export default function Quadrant3DMatrix({ enrichedIdeas = [], selectedIdeaId, o
       </div>
 
       {/* 3D Canvas */}
-      <div className="relative w-full" style={{ height: '520px' }}>
+      <div className="relative w-full isolate z-0" style={{ height: '520px' }}>
         <Canvas
           camera={{ position: [4.5, 4.5, 5.5], fov: 42 }}
           style={{ background: '#F7F5F0' }}

@@ -73,9 +73,9 @@ export default function TopBar({ onReset, isResetting }) {
           role="dialog"
           aria-modal="true"
           aria-labelledby="confirm-reset-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40 backdrop-grayscale-0 print-hide"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-ink/50 backdrop-blur-[1px] print-hide"
         >
-          <div className="bg-surface border border-border max-w-md w-full p-6 shadow-none">
+          <div className="bg-surface border border-border max-w-md w-full p-6 shadow-2xl relative z-[10000]">
             <div className="border-b border-border pb-3 mb-4">
               <span className="font-mono text-2xs uppercase tracking-widest text-brand font-semibold block mb-1">
                 PERINGATAN INTEGRITAS DATA

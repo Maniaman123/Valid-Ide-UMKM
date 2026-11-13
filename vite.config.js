@@ -9,6 +9,7 @@ export default defineConfig({
         manualChunks: {
           'three-core': ['three'],
           'react-three': ['@react-three/fiber', '@react-three/drei'],
+          'chartjs': ['chart.js', 'react-chartjs-2'],
           'firebase': ['firebase/app', 'firebase/firestore'],
         },
       },
