@@ -233,17 +233,98 @@ function AxisGrid() {
         </Html>
       ))}
 
-      {/* Y axis title at top */}
-      <Html position={[halfLen + 0.6, 2.9, 0]} center distanceFactor={6} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
-        <span style={{
-          fontFamily: '"JetBrains Mono", monospace',
-          fontSize: '8px',
-          fontWeight: '700',
-          color: '#C85A32',
-          textTransform: 'uppercase',
-          letterSpacing: '0.08em',
-          whiteSpace: 'nowrap',
-        }}>TOTAL SKOR ↑</span>
+      {/* ─── Y-Axis Vertical Ruler: Total Score (2–10) ────────────────── */}
+      {/* Vertical axis rod */}
+      <mesh position={[-halfLen - 0.3, 1.5, -halfLen - 0.3]}>
+        <cylinderGeometry args={[0.012, 0.012, 3.0, 10]} />
+        <meshStandardMaterial color="#C85A32" roughness={0.6} metalness={0.2} />
+      </mesh>
+
+      {/* Subtle elevation reference lines at Score 5 & Score 10 */}
+      {[5, 10].map((s) => (
+        <group key={`elev-${s}`} position={[0, s * Y_SCALE, 0]}>
+          <mesh position={[0, 0, -halfLen - 0.3]} rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.004, 0.004, (AXIS_MAX - AXIS_MIN) * SCALE + 0.6, 6]} />
+            <meshStandardMaterial color={s === 10 ? '#C85A32' : '#8C827A'} transparent opacity={0.25} roughness={1} />
+          </mesh>
+          <mesh position={[-halfLen - 0.3, 0, 0]}>
+            <cylinderGeometry args={[0.004, 0.004, (AXIS_MAX - AXIS_MIN) * SCALE + 0.6, 6]} />
+            <meshStandardMaterial color={s === 10 ? '#C85A32' : '#8C827A'} transparent opacity={0.25} roughness={1} />
+          </mesh>
+        </group>
+      ))}
+
+      {/* Ticks and numerical measurements along Y-axis (Scores 2 to 10) */}
+      {[2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => {
+        const y = score * Y_SCALE;
+        const isMax = score === 10;
+        const isEven = score % 2 === 0;
+        return (
+          <group key={`yt-${score}`} position={[-halfLen - 0.3, y, -halfLen - 0.3]}>
+            {/* Notch sticking out horizontally */}
+            <mesh position={[0.05, 0, 0.05]} rotation={[0, -Math.PI / 4, 0]}>
+              <cylinderGeometry args={[0.008, 0.008, 0.12, 6]} />
+              <meshStandardMaterial
+                color={isMax ? '#C85A32' : isEven ? '#E2DDD5' : '#8C827A'}
+                roughness={1}
+              />
+            </mesh>
+            {/* Score number */}
+            <Html
+              position={[-0.16, 0, -0.16]}
+              center
+              distanceFactor={5.5}
+              zIndexRange={[10, 0]}
+              style={{ pointerEvents: 'none' }}
+            >
+              <span
+                style={{
+                  fontFamily: '"JetBrains Mono", monospace',
+                  fontSize: isMax ? '10px' : isEven ? '9px' : '8px',
+                  fontWeight: isMax ? '800' : isEven ? '700' : '500',
+                  color: isMax ? '#FF7A45' : isEven ? '#FFFFFF' : '#94A3B8',
+                  backgroundColor: isMax ? 'rgba(200, 90, 50, 0.25)' : 'transparent',
+                  border: isMax ? '1px solid #C85A32' : 'none',
+                  padding: isMax ? '1px 4px' : '0',
+                  borderRadius: '2px',
+                  whiteSpace: 'nowrap',
+                  lineHeight: 1,
+                  display: 'inline-block',
+                }}
+              >
+                {score}
+              </span>
+            </Html>
+          </group>
+        );
+      })}
+
+      {/* Y axis badge title at top of ruler */}
+      <Html
+        position={[-halfLen - 0.3, 10 * Y_SCALE + 0.38, -halfLen - 0.3]}
+        center
+        distanceFactor={5}
+        zIndexRange={[10, 0]}
+        style={{ pointerEvents: 'none' }}
+      >
+        <div
+          style={{
+            fontFamily: '"JetBrains Mono", monospace',
+            fontSize: '10px',
+            fontWeight: '700',
+            color: '#FFFFFF',
+            backgroundColor: '#C85A32',
+            border: '1px solid #FDBA74',
+            padding: '2px 8px',
+            whiteSpace: 'nowrap',
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+            lineHeight: 1.5,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+          }}
+        >
+          TOTAL SKOR (2–10) ↑
+        </div>
       </Html>
     </group>
   );
