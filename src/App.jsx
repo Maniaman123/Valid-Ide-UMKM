@@ -14,6 +14,7 @@ export default function App() {
   const [isLoading, setIsLoading]       = useState(true);
   const [isResetting, setIsResetting]   = useState(false);
   const [selectedIdeaId, setSelectedIdeaId] = useState(null);
+  const [editingIdea, setEditingIdea]   = useState(null);
 
   // ── Bootstrap ───────────────────────────────────────────────────────────
   useEffect(() => {
@@ -48,12 +49,32 @@ export default function App() {
     try { await saveIdeas(updated); } catch (e) { console.error(e); }
   }, [ideas]);
 
+  const handleUpdateIdea = useCallback(async (updatedIdeaData) => {
+    const updated = ideas.map((idea) =>
+      idea.id === updatedIdeaData.id ? { ...idea, ...updatedIdeaData } : idea
+    );
+    setIdeas(updated);
+    setEditingIdea(null);
+    try { await saveIdeas(updated); } catch (e) { console.error(e); }
+  }, [ideas]);
+
+  const handleStartEdit = useCallback((idea) => {
+    setEditingIdea(idea);
+    setSelectedIdeaId(idea.id);
+    document.getElementById('idea-input-form')?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
+  const handleCancelEdit = useCallback(() => {
+    setEditingIdea(null);
+  }, []);
+
   const handleDeleteIdea = useCallback(async (id) => {
     const updated = ideas.filter((i) => i.id !== id);
     setIdeas(updated);
     if (selectedIdeaId === id) setSelectedIdeaId(null);
+    if (editingIdea?.id === id) setEditingIdea(null);
     try { await saveIdeas(updated); } catch (e) { console.error(e); }
-  }, [ideas, selectedIdeaId]);
+  }, [ideas, selectedIdeaId, editingIdea]);
 
   const handleReset = useCallback(async () => {
     setIsResetting(true);
@@ -61,6 +82,7 @@ export default function App() {
       const restored = await resetToSeedData();
       setIdeas(restored);
       setSelectedIdeaId(null);
+      setEditingIdea(null);
     } catch (e) {
       console.error('[App] reset failed:', e);
     } finally {
@@ -91,6 +113,9 @@ export default function App() {
               <div className="lg:col-span-4">
                 <IdeaInputForm
                   onAddIdea={handleAddIdea}
+                  onUpdateIdea={handleUpdateIdea}
+                  editingIdea={editingIdea}
+                  onCancelEdit={handleCancelEdit}
                   onHoverIdea={(h) => { if (h) setSelectedIdeaId(h.id ?? null); }}
                 />
               </div>
@@ -115,6 +140,7 @@ export default function App() {
               enrichedIdeas={enrichedIdeas}
               selectedIdeaId={selectedIdeaId}
               onSelectIdea={setSelectedIdeaId}
+              onEditIdea={handleStartEdit}
               onDeleteIdea={handleDeleteIdea}
             />
 

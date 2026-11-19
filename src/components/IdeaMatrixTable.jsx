@@ -14,6 +14,7 @@ export default function IdeaMatrixTable({
   enrichedIdeas = [],
   selectedIdeaId,
   onSelectIdea,
+  onEditIdea,
   onDeleteIdea,
 }) {
   const [activeFilter, setActiveFilter] = useState('Semua');
@@ -85,7 +86,7 @@ export default function IdeaMatrixTable({
         <table className="w-full text-xs border-collapse" aria-label="Tabel ide inovasi LKPD 6">
           <thead>
             <tr className="bg-sand text-left">
-              {['No', 'Nama Ide Fitur (ONLASHOES)', 'F', 'I', 'Skor', 'Kuadran', 'Aksi'].map((h) => (
+              {['No', 'Nama Ide Fitur (ONLASHOES)', 'SCAMPER', 'F', 'I', 'Skor', 'Kuadran', 'Aksi'].map((h) => (
                 <th
                   key={h}
                   scope="col"
@@ -99,7 +100,7 @@ export default function IdeaMatrixTable({
           <tbody className="divide-y divide-border">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center font-mono text-xs text-muted">
+                <td colSpan={8} className="px-4 py-8 text-center font-mono text-xs text-muted">
                   Tidak ada ide dalam kuadran ini.
                 </td>
               </tr>
@@ -120,11 +121,14 @@ export default function IdeaMatrixTable({
                     </td>
                     <td className="px-3 py-2.5 text-ink font-medium max-w-[260px]">
                       <span className="line-clamp-2 leading-snug">{idea.title}</span>
-                      {idea.scamper && (
-                        <span className="mt-0.5 font-mono text-3xs text-muted block">
-                          SCAMPER: {idea.scamper}
-                        </span>
-                      )}
+                    </td>
+                    <td className="px-3 py-2.5 whitespace-nowrap text-center">
+                      <span
+                        className="inline-flex items-center justify-center w-6 h-6 font-mono text-2xs font-bold border border-border bg-sand text-ink"
+                        title={`Teknik SCAMPER: ${idea.scamper || '—'}`}
+                      >
+                        {idea.scamper || '—'}
+                      </span>
                     </td>
                     <td className="px-3 py-2.5 font-mono font-bold text-ink tabular-nums text-center whitespace-nowrap">
                       {idea.feasibility}
@@ -147,14 +151,27 @@ export default function IdeaMatrixTable({
                       </span>
                     </td>
                     <td className="px-3 py-2.5 whitespace-nowrap print-hide">
-                      <button
-                        type="button"
-                        onClick={(e) => handleDeleteClick(e, idea.id)}
-                        className="min-h-[32px] px-2.5 py-1 font-mono text-3xs uppercase border border-border text-muted hover:border-red-400 hover:text-red-600 transition-colors"
-                        aria-label={`Hapus ${idea.code}`}
-                      >
-                        Hapus
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEditIdea?.(idea);
+                          }}
+                          className="min-h-[32px] px-2.5 py-1 font-mono text-3xs uppercase border border-border bg-surface text-ink hover:bg-sand transition-colors"
+                          aria-label={`Edit ${idea.code}`}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => handleDeleteClick(e, idea.id)}
+                          className="min-h-[32px] px-2.5 py-1 font-mono text-3xs uppercase border border-border text-muted hover:border-red-400 hover:text-red-600 transition-colors"
+                          aria-label={`Hapus ${idea.code}`}
+                        >
+                          Hapus
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -165,7 +182,7 @@ export default function IdeaMatrixTable({
           {filtered.length > 0 && (
             <tfoot>
               <tr className="bg-sand border-t-2 border-border">
-                <td colSpan={2} className="px-3 py-2 font-mono text-2xs text-muted uppercase tracking-wide">
+                <td colSpan={3} className="px-3 py-2 font-mono text-2xs text-muted uppercase tracking-wide">
                   {filtered.length} Ide Ditampilkan
                 </td>
                 <td className="px-3 py-2 font-mono font-bold text-xs text-ink text-center tabular-nums">
