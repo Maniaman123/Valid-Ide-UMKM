@@ -133,13 +133,14 @@ function AxisGrid() {
         <group key={`xt-${v}`} position={[toPos(v), FLOOR_Y, -halfLen - 0.3]}>
           <mesh rotation={[Math.PI / 2, 0, 0]}>
             <cylinderGeometry args={[0.012, 0.012, 0.12, 6]} />
-            <meshStandardMaterial color="#6B655E" roughness={1} />
+            <meshStandardMaterial color="#8C827A" roughness={1} />
           </mesh>
           <Html center distanceFactor={6} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
             <span style={{
               fontFamily: '"JetBrains Mono", monospace',
-              fontSize: '8px',
-              color: '#6B655E',
+              fontSize: '9px',
+              fontWeight: '600',
+              color: '#F1F5F9',
               whiteSpace: 'nowrap',
             }}>{v}</span>
           </Html>
@@ -151,13 +152,14 @@ function AxisGrid() {
         <group key={`zt-${v}`} position={[-halfLen - 0.3, FLOOR_Y, toPos(v)]}>
           <mesh rotation={[0, 0, Math.PI / 2]}>
             <cylinderGeometry args={[0.012, 0.012, 0.12, 6]} />
-            <meshStandardMaterial color="#6B655E" roughness={1} />
+            <meshStandardMaterial color="#8C827A" roughness={1} />
           </mesh>
           <Html center distanceFactor={6} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
             <span style={{
               fontFamily: '"JetBrains Mono", monospace',
-              fontSize: '8px',
-              color: '#6B655E',
+              fontSize: '9px',
+              fontWeight: '600',
+              color: '#F1F5F9',
               whiteSpace: 'nowrap',
             }}>{v}</span>
           </Html>
@@ -165,30 +167,42 @@ function AxisGrid() {
       ))}
 
       {/* Axis labels */}
-      <Html position={[0, FLOOR_Y, -halfLen - 0.95]} center distanceFactor={5} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
-        <span style={{
+      <Html position={[0, FLOOR_Y, -halfLen - 1.05]} center distanceFactor={5} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
+        <div style={{
           fontFamily: '"JetBrains Mono", monospace',
-          fontSize: '9px',
+          fontSize: '10px',
           fontWeight: '700',
-          color: '#171615',
+          color: '#FFFFFF',
+          backgroundColor: '#059669',
+          border: '1px solid #86EFAC',
+          padding: '2px 8px',
           whiteSpace: 'nowrap',
           textTransform: 'uppercase',
           letterSpacing: '0.08em',
-        }}>FEASIBILITY (1–5)</span>
+          lineHeight: 1.5,
+          boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+        }}>
+          FEASIBILITY (1–5)
+        </div>
       </Html>
 
-      <Html position={[-halfLen - 0.95, FLOOR_Y, 0]} center distanceFactor={5} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
-        <span style={{
+      <Html position={[-halfLen - 1.15, FLOOR_Y, 0]} center distanceFactor={5} zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
+        <div style={{
           fontFamily: '"JetBrains Mono", monospace',
-          fontSize: '9px',
+          fontSize: '10px',
           fontWeight: '700',
-          color: '#171615',
+          color: '#FFFFFF',
+          backgroundColor: '#2563EB',
+          border: '1px solid #93C5FD',
+          padding: '2px 8px',
           whiteSpace: 'nowrap',
           textTransform: 'uppercase',
           letterSpacing: '0.08em',
-          transform: 'rotate(-90deg)',
-          display: 'block',
-        }}>IMPACT (1–5)</span>
+          lineHeight: 1.5,
+          boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+        }}>
+          IMPACT (1–5)
+        </div>
       </Html>
 
       {/* Quadrant zone labels */}
