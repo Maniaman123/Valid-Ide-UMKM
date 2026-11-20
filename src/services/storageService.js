@@ -167,7 +167,13 @@ export async function loadIdeas() {
 
   // localStorage path
   const cached = lsLoad();
-  if (cached && cached.length > 0) return cached;
+  if (cached && cached.length > 0) {
+    const seedMap = new Map(SEED_IDEAS.map((s) => [s.id, s.description]));
+    return cached.map((c) => ({
+      ...c,
+      description: c.description || seedMap.get(c.id) || c.justification || '',
+    }));
+  }
   lsSave(SEED_IDEAS);
   return structuredClone(SEED_IDEAS);
 }

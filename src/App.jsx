@@ -105,7 +105,11 @@ export default function App() {
         ) : (
           <>
             {/* ② Winner banner — always visible */}
-            <SelectedPriorityBanner idea={winnerIdea} />
+            <SelectedPriorityBanner
+              idea={winnerIdea}
+              ideas={enrichedIdeas}
+              onSelectIdea={setSelectedIdeaId}
+            />
 
             {/* ③ Primary workspace: 4-col form + 8-col 3D matrix */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">

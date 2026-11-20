@@ -104,10 +104,26 @@ export function getSelectedPriorityIdea(ideas) {
     // Primary sort: higher totalScore first
     if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
     // Tie-breaker: lower original index first (aligns #1 as primary HMW for ONLASHOES)
-    return a._originalIndex - b._originalIndex;
+    return (a._originalIndex ?? 0) - (b._originalIndex ?? 0);
   });
 
   return sorted[0];
+}
+
+/**
+ * Returns all ideas in the PRIORITAS UTAMA quadrant, sorted descending by totalScore,
+ * then ascending by _originalIndex.
+ *
+ * @param {Object[]} ideas
+ * @returns {Object[]}
+ */
+export function getAllPriorityIdeas(ideas = []) {
+  return ideas
+    .filter((idea) => idea.quadrant === 'PRIORITAS UTAMA')
+    .sort((a, b) => {
+      if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
+      return (a._originalIndex ?? 0) - (b._originalIndex ?? 0);
+    });
 }
 
 /**

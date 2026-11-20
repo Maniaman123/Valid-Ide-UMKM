@@ -612,19 +612,31 @@ function InspectionCard({ idea }) {
   const meta = QUADRANT_META[idea.quadrant];
   return (
     <div
-      className="absolute top-3 right-3 bg-surface border border-border p-3 w-56 z-10 pointer-events-none"
+      className="absolute top-3 right-3 bg-surface border border-border p-3 w-60 z-10 pointer-events-none"
       aria-live="polite"
     >
       <div className="border-b border-border pb-2 mb-2">
         <span className="font-mono text-3xs uppercase tracking-widest text-brand font-semibold block">
           INSPEKSI NODE
         </span>
-        <span className="font-mono text-xs font-bold text-ink mt-0.5 block">
-          {idea.code}
-        </span>
-        <p className="text-xs text-ink font-medium leading-snug mt-0.5 line-clamp-2">
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <span className="font-mono text-xs font-bold text-ink">
+            {idea.code}
+          </span>
+          {idea.scamper && (
+            <span className="font-mono text-3xs px-1 border border-border bg-sand text-ink font-semibold">
+              SCAMPER: {idea.scamper}
+            </span>
+          )}
+        </div>
+        <p className="text-xs text-ink font-semibold leading-snug mt-0.5 line-clamp-2">
           {idea.title}
         </p>
+        {(idea.description || idea.justification) && (
+          <p className="text-3xs text-muted leading-tight mt-1 line-clamp-3">
+            {idea.description || idea.justification}
+          </p>
+        )}
       </div>
       <div className="grid grid-cols-3 gap-1 font-mono text-2xs mb-2">
         {[

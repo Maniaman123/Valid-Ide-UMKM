@@ -119,8 +119,13 @@ export default function IdeaMatrixTable({
                     <td className="px-3 py-2.5 font-mono font-semibold text-muted whitespace-nowrap">
                       {idea.code}
                     </td>
-                    <td className="px-3 py-2.5 text-ink font-medium max-w-[260px]">
-                      <span className="line-clamp-2 leading-snug">{idea.title}</span>
+                    <td className="px-3 py-2.5 text-ink font-medium max-w-[280px] break-words [overflow-wrap:anywhere]">
+                      <span className="font-semibold leading-snug block break-words [overflow-wrap:anywhere]">{idea.title}</span>
+                      {(idea.description || idea.justification) && (
+                        <p className="font-sans text-2xs text-muted leading-tight mt-1 line-clamp-2 break-words [overflow-wrap:anywhere]">
+                          {idea.description || idea.justification}
+                        </p>
+                      )}
                     </td>
                     <td className="px-3 py-2.5 whitespace-nowrap text-center">
                       <span

@@ -38,7 +38,9 @@ export default function IdeaInputForm({
   onHoverIdea,
 }) {
   const titleInputId = useId();
+  const descInputId = useId();
   const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [scamper, setScamper] = useState('S');
   const [feasibility, setFeasibility] = useState(4);
   const [impact, setImpact] = useState(4);
@@ -48,12 +50,14 @@ export default function IdeaInputForm({
   useEffect(() => {
     if (editingIdea) {
       setTitle(editingIdea.title || '');
+      setDescription(editingIdea.description || editingIdea.justification || '');
       setScamper(editingIdea.scamper || 'S');
       setFeasibility(Number(editingIdea.feasibility) || 4);
       setImpact(Number(editingIdea.impact) || 4);
       setJustification(editingIdea.justification || '');
     } else {
       setTitle('');
+      setDescription('');
       setScamper('S');
       setFeasibility(4);
       setImpact(4);
@@ -74,10 +78,16 @@ export default function IdeaInputForm({
     e.preventDefault();
     if (!title.trim()) return;
 
+    const finalDesc =
+      description.trim() ||
+      editingIdea?.description ||
+      'Solusi fitur digital untuk mendukung operasional toko sepatu ONLASHOES.';
+
     if (editingIdea) {
       const updatedIdea = {
         ...editingIdea,
         title: title.trim(),
+        description: finalDesc,
         scamper,
         feasibility: Number(feasibility),
         impact: Number(impact),
@@ -87,6 +97,7 @@ export default function IdeaInputForm({
     } else {
       const newIdea = {
         title: title.trim(),
+        description: finalDesc,
         scamper,
         feasibility: Number(feasibility),
         impact: Number(impact),
@@ -94,6 +105,7 @@ export default function IdeaInputForm({
       };
       onAddIdea(newIdea);
       setTitle('');
+      setDescription('');
       setJustification('');
       setScamper('S');
     }
@@ -104,6 +116,7 @@ export default function IdeaInputForm({
       onHoverIdea({
         id: editingIdea?.id,
         title: title || (editingIdea ? editingIdea.title : 'Simulasi Ide Baru'),
+        description: description || editingIdea?.description || '',
         scamper,
         feasibility,
         impact,
@@ -159,6 +172,24 @@ export default function IdeaInputForm({
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Contoh: Fitur Notifikasi Restock Size 39"
             className="w-full min-h-touch px-3.5 py-2 text-sm bg-surface border border-border text-ink placeholder:text-muted/60 focus-visible:outline-2 focus-visible:outline-brand"
+          />
+        </div>
+
+        {/* Deskripsi Ide Fitur */}
+        <div>
+          <label
+            htmlFor={descInputId}
+            className="block text-xs font-mono uppercase tracking-wider text-ink font-semibold mb-1.5"
+          >
+            Deskripsi Ide Fitur
+          </label>
+          <textarea
+            id={descInputId}
+            rows={2}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Contoh: Mengirim notifikasi otomatis ke pembeli saat stok ukuran 39 kembali tersedia."
+            className="w-full min-h-[44px] px-3.5 py-2 text-sm bg-surface border border-border text-ink placeholder:text-muted/60 focus-visible:outline-2 focus-visible:outline-brand resize-y"
           />
         </div>
 
