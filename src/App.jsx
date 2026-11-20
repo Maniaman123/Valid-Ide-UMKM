@@ -5,7 +5,6 @@ import IdeaInputForm from './components/IdeaInputForm';
 import Quadrant3DMatrix from './components/Quadrant3DMatrix';
 import TotalScoreChart from './components/TotalScoreChart';
 import IdeaMatrixTable from './components/IdeaMatrixTable';
-import SurveyReportSection from './components/SurveyReportSection';
 import { loadIdeas, saveIdeas, resetToSeedData } from './services/storageService';
 import { enrichAll, getSelectedPriorityIdea, groupByQuadrant } from './utils/quadrantLogic';
 
@@ -142,13 +141,6 @@ export default function App() {
               onSelectIdea={setSelectedIdeaId}
               onEditIdea={handleStartEdit}
               onDeleteIdea={handleDeleteIdea}
-            />
-
-            {/* ⑥ Print-ready survey report & reflection section */}
-            <SurveyReportSection
-              enrichedIdeas={enrichedIdeas}
-              quadrantGroups={quadrantGroups}
-              winner={winnerIdea}
             />
           </>
         )}
