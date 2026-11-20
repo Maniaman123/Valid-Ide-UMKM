@@ -168,13 +168,13 @@ export default function IdeaInputForm({
             <span className="text-xs font-mono uppercase tracking-wider text-ink font-semibold">
               Teknik SCAMPER
             </span>
-            <span className="text-2xs font-mono text-muted">
+            <span className="text-2xs font-mono text-muted whitespace-nowrap shrink-0">
               Kode: <strong className="text-ink">{scamper}</strong>
             </span>
           </div>
 
           <div
-            className="grid grid-cols-7 gap-1.5"
+            className="grid grid-cols-7 gap-1"
             role="radiogroup"
             aria-label="Pilihan Teknik SCAMPER"
           >
@@ -187,16 +187,16 @@ export default function IdeaInputForm({
                   role="radio"
                   aria-checked={active}
                   onClick={() => setScamper(opt.code)}
-                  className={`min-h-touch px-1 py-2 text-xs font-mono transition-colors border text-center ${
+                  className={`min-h-touch px-0.5 py-2 text-xs font-mono transition-colors border text-center ${
                     active
                       ? 'bg-ink text-surface border-ink font-bold'
                       : 'bg-surface text-ink border-border hover:bg-sand'
                   }`}
                   title={`${opt.code} — ${opt.name}`}
                 >
-                  <span className="block text-sm font-bold">{opt.code}</span>
-                  <span className="block text-3xs opacity-80 truncate hidden sm:block">
-                    {opt.code}
+                  <span className="block text-sm font-bold leading-none">{opt.code}</span>
+                  <span className="block text-3xs opacity-60 leading-none mt-0.5">
+                    {opt.name.split(' ')[0].slice(0, 3)}
                   </span>
                 </button>
               );
@@ -215,12 +215,14 @@ export default function IdeaInputForm({
 
         {/* Feasibility 1-5 Segmented Selector */}
         <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs font-mono uppercase tracking-wider text-ink font-semibold">
+          {/* Two-row label: title on top, badge below-right */}
+          <div className="mb-1.5">
+            <span className="block text-xs font-mono uppercase tracking-wider text-ink font-semibold">
               Feasibility / Keterlaksanaan (1–5)
             </span>
-            <span className="text-2xs font-mono text-muted">
-              Tingkat: <strong className="text-ink">{feasibilityLevel}</strong>
+            <span className="block text-2xs font-mono text-muted mt-0.5">
+              Tingkat saat ini:{' '}
+              <strong className="text-ink">{feasibilityLevel}</strong>
             </span>
           </div>
           <div className="grid grid-cols-5 gap-1.5" role="radiogroup" aria-label="Feasibility Scale">
@@ -240,8 +242,8 @@ export default function IdeaInputForm({
                   }`}
                   title={SCALE_LABELS[val]}
                 >
-                  <span className="block text-sm">{val}</span>
-                  <span className="block text-3xs opacity-80 truncate hidden sm:block">
+                  <span className="block text-sm font-bold leading-none">{val}</span>
+                  <span className="block text-3xs opacity-70 leading-none mt-0.5">
                     {val <= 3 ? 'Rendah' : 'Tinggi'}
                   </span>
                 </button>
@@ -252,12 +254,13 @@ export default function IdeaInputForm({
 
         {/* Impact 1-5 Segmented Selector */}
         <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs font-mono uppercase tracking-wider text-ink font-semibold">
+          <div className="mb-1.5">
+            <span className="block text-xs font-mono uppercase tracking-wider text-ink font-semibold">
               Impact / Dampak Strategis (1–5)
             </span>
-            <span className="text-2xs font-mono text-muted">
-              Tingkat: <strong className="text-ink">{impactLevel}</strong>
+            <span className="block text-2xs font-mono text-muted mt-0.5">
+              Tingkat saat ini:{' '}
+              <strong className="text-ink">{impactLevel}</strong>
             </span>
           </div>
           <div className="grid grid-cols-5 gap-1.5" role="radiogroup" aria-label="Impact Scale">
@@ -277,8 +280,8 @@ export default function IdeaInputForm({
                   }`}
                   title={SCALE_LABELS[val]}
                 >
-                  <span className="block text-sm">{val}</span>
-                  <span className="block text-3xs opacity-80 truncate hidden sm:block">
+                  <span className="block text-sm font-bold leading-none">{val}</span>
+                  <span className="block text-3xs opacity-70 leading-none mt-0.5">
                     {val <= 3 ? 'Rendah' : 'Tinggi'}
                   </span>
                 </button>
@@ -293,24 +296,21 @@ export default function IdeaInputForm({
           onMouseLeave={handleMouseLeavePreview}
           className="p-4 bg-sand border border-border"
         >
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <span className="font-mono text-3xs uppercase tracking-widest text-muted block mb-0.5">
-                HASIL KALKULASI LOGIKA KUADRAN
-              </span>
-              <div className="flex items-center gap-2 font-mono text-xs text-ink">
-                <span>Skor: <strong>{totalScore}/10</strong> ({feasibility} + {impact})</span>
-                <span className="text-border">|</span>
-                <span>F: {feasibilityLevel}</span>
-                <span className="text-border">|</span>
-                <span>I: {impactLevel}</span>
-              </div>
-            </div>
+          <span className="font-mono text-3xs uppercase tracking-widest text-muted block mb-2">
+            HASIL KALKULASI LOGIKA KUADRAN
+          </span>
 
-            <div className="flex items-center gap-2">
-              <span className="text-2xs font-mono text-muted uppercase">Kuadran:</span>
+          {/* Row 1: Score + Quadrant badge */}
+          <div className="flex items-center justify-between gap-3 mb-1.5">
+            <span className="font-mono text-xs text-ink whitespace-nowrap">
+              Skor: <strong className="text-base tabular-nums">{totalScore}</strong>
+              <span className="text-muted">/10</span>
+              <span className="text-muted ml-1 text-2xs">({feasibility}+{impact})</span>
+            </span>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="text-2xs font-mono text-muted uppercase whitespace-nowrap">Kuadran:</span>
               <span
-                className={`inline-flex items-center px-2.5 py-1 text-2xs font-mono font-bold uppercase tracking-wider ${
+                className={`inline-flex items-center px-2 py-0.5 text-2xs font-mono font-bold uppercase tracking-wider whitespace-nowrap ${
                   quadMeta ? quadMeta.badgeClass : 'badge-q4'
                 }`}
               >
@@ -318,9 +318,24 @@ export default function IdeaInputForm({
               </span>
             </div>
           </div>
+
+          {/* Row 2: F + I levels */}
+          <div className="flex items-center gap-4 font-mono text-2xs text-muted border-t border-border/60 pt-1.5">
+            <span>
+              Feasibility:{' '}
+              <strong className="text-ink font-semibold">{feasibilityLevel}</strong>
+            </span>
+            <span className="text-border/80">•</span>
+            <span>
+              Impact:{' '}
+              <strong className="text-ink font-semibold">{impactLevel}</strong>
+            </span>
+          </div>
+
+          {/* Row 3: Recommendation */}
           {quadMeta && (
-            <p className="text-2xs text-muted font-mono mt-2 pt-2 border-t border-border/80">
-              Rekomendasi: {quadMeta.action}
+            <p className="font-mono text-2xs text-muted mt-1.5 pt-1.5 border-t border-border/60">
+              Rekomendasi: <span className="text-ink">{quadMeta.action}</span>
             </p>
           )}
         </div>
