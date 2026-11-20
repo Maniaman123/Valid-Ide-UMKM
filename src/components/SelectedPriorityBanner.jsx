@@ -130,7 +130,7 @@ export default function SelectedPriorityBanner({ idea, ideas = [], onSelectIdea 
               </div>
 
               {/* Title with Strict Unbroken Text Wrapping */}
-              <h3 className="text-sm font-bold text-ink group-hover:text-brand transition-colors break-words [overflow-wrap:anywhere] whitespace-pre-wrap leading-snug">
+              <h3 className="text-sm font-bold text-ink group-hover:text-brand transition-colors break-words whitespace-pre-wrap leading-snug">
                 {item.title}
               </h3>
 
@@ -156,11 +156,11 @@ export default function SelectedPriorityBanner({ idea, ideas = [], onSelectIdea 
 
               {/* Expandable Description Panel */}
               {isExpanded && (
-                <div className="p-3 bg-sand/60 border border-border text-xs leading-relaxed text-[#57534E] break-words [overflow-wrap:anywhere] whitespace-pre-wrap">
+                <div className="p-3 bg-sand/60 border border-border text-xs leading-relaxed text-[#57534E] break-words whitespace-pre-wrap">
                   <span className="font-mono text-3xs uppercase tracking-wider text-brand font-semibold block mb-1">
                     DESKRIPSI & MEKANISME FITUR:
                   </span>
-                  <p className="text-xs leading-relaxed text-[#57534E] break-words [overflow-wrap:anywhere] whitespace-pre-wrap">
+                  <p className="text-xs leading-relaxed text-[#57534E] break-words whitespace-pre-wrap">
                     {item.description ||
                       item.justification ||
                       'Solusi fitur digital untuk mendukung operasional toko sepatu ONLASHOES.'}

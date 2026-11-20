@@ -6,7 +6,7 @@ import Quadrant3DMatrix from './components/Quadrant3DMatrix';
 import TotalScoreChart from './components/TotalScoreChart';
 import IdeaMatrixTable from './components/IdeaMatrixTable';
 import { loadIdeas, saveIdeas, resetToSeedData } from './services/storageService';
-import { enrichAll, getSelectedPriorityIdea, groupByQuadrant } from './utils/quadrantLogic';
+import { enrichAll, getSelectedPriorityIdea } from './utils/quadrantLogic';
 
 export default function App() {
   const [ideas, setIdeas]               = useState([]);
@@ -34,7 +34,6 @@ export default function App() {
   // ── Derived state ────────────────────────────────────────────────────────
   const enrichedIdeas   = useMemo(() => enrichAll(ideas), [ideas]);
   const winnerIdea      = useMemo(() => getSelectedPriorityIdea(enrichedIdeas), [enrichedIdeas]);
-  const quadrantGroups  = useMemo(() => groupByQuadrant(enrichedIdeas), [enrichedIdeas]);
 
   // ── Handlers ─────────────────────────────────────────────────────────────
   const handleAddIdea = useCallback(async (newIdeaData) => {
