@@ -133,7 +133,7 @@ export default function IdeaInputForm({
   };
 
   return (
-    <div id="idea-input-form" className="surface-card p-5 sm:p-6 mb-6 print-hide scroll-mt-6">
+    <div id="idea-input-form" className="surface-card p-5 sm:p-6 mb-6 print-hide print:hidden scroll-mt-6">
       <div className="border-b border-border pb-3 mb-5">
         <div className="flex items-center justify-between">
           <span className="font-mono text-2xs uppercase tracking-widest text-brand font-semibold block mb-0.5">

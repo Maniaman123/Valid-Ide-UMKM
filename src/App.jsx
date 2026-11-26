@@ -1,22 +1,26 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import TopBar from './components/TopBar';
+import PrintReportHeader from './components/PrintReportHeader';
 import SelectedPriorityBanner from './components/SelectedPriorityBanner';
 import IdeaInputForm from './components/IdeaInputForm';
 import Quadrant3DMatrix from './components/Quadrant3DMatrix';
 import TotalScoreChart from './components/TotalScoreChart';
+import QuadrantDoughnutChart from './components/QuadrantDoughnutChart';
 import IdeaMatrixTable from './components/IdeaMatrixTable';
 import { loadIdeas, saveIdeas, resetToSeedData } from './services/storageService';
 import { enrichAll, getSelectedPriorityIdea } from './utils/quadrantLogic';
 
 export default function App() {
-  const [ideas, setIdeas]               = useState([]);
-  const [isLoading, setIsLoading]       = useState(true);
-  const [isResetting, setIsResetting]   = useState(false);
-  const [selectedIdeaId, setSelectedIdeaId] = useState(null);
-  const [editingIdea, setEditingIdea]   = useState(null);
+  const [ideas, setIdeas]                     = useState([]);
+  const [isLoading, setIsLoading]             = useState(true);
+  const [isResetting, setIsResetting]         = useState(false);
+  const [selectedIdeaId, setSelectedIdeaId]   = useState(null);
+  const [editingIdea, setEditingIdea]         = useState(null);
+  const [activeFilter, setActiveFilter]       = useState('Semua');
 
-  const matrixRef = useRef(null);
-  const chartRef  = useRef(null);
+  const matrixRef   = useRef(null);
+  const chartRef    = useRef(null);
+  const doughnutRef = useRef(null);
 
   // ── Bootstrap ───────────────────────────────────────────────────────────
   useEffect(() => {
@@ -35,8 +39,8 @@ export default function App() {
   }, []);
 
   // ── Derived state ────────────────────────────────────────────────────────
-  const enrichedIdeas   = useMemo(() => enrichAll(ideas), [ideas]);
-  const winnerIdea      = useMemo(() => getSelectedPriorityIdea(enrichedIdeas), [enrichedIdeas]);
+  const enrichedIdeas = useMemo(() => enrichAll(ideas), [ideas]);
+  const winnerIdea    = useMemo(() => getSelectedPriorityIdea(enrichedIdeas), [enrichedIdeas]);
 
   // ── Handlers ─────────────────────────────────────────────────────────────
   const handleAddIdea = useCallback(async (newIdeaData) => {
@@ -84,6 +88,7 @@ export default function App() {
       setIdeas(restored);
       setSelectedIdeaId(null);
       setEditingIdea(null);
+      setActiveFilter('Semua');
     } catch (e) {
       console.error('[App] reset failed:', e);
     } finally {
@@ -96,22 +101,26 @@ export default function App() {
       await Promise.all([
         matrixRef.current?.capturePrintSnapshot?.(),
         chartRef.current?.capturePrintSnapshot?.(),
+        doughnutRef.current?.captureSnapshot?.(),
       ]);
     } catch (err) {
       console.warn('[App] snapshot capture before print failed:', err);
     }
-    // Allow React to flush both <img> elements into the DOM before opening print dialog
-    await new Promise((resolve) => setTimeout(resolve, 150));
+    // Wait 180ms so React flushes all three <img> snapshots cleanly into the DOM
+    await new Promise((resolve) => setTimeout(resolve, 180));
     window.print();
   }, []);
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-canvas text-ink flex flex-col font-sans selection:bg-brand selection:text-surface">
-      {/* ① Top navigation bar */}
+    <div className="min-h-screen bg-canvas text-ink flex flex-col font-sans selection:bg-brand selection:text-surface print:bg-white">
+      {/* ① Top navigation bar (hidden on print) */}
       <TopBar onReset={handleReset} isResetting={isResetting} onPrint={handlePrintReport} />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 print:px-0 print:py-0 print:space-y-4">
+        {/* Dedicated A4 Print Header */}
+        <PrintReportHeader />
+
         {isLoading ? (
           <div className="surface-card p-16 text-center">
             <span className="font-mono text-xs uppercase tracking-widest text-muted block">
@@ -120,15 +129,15 @@ export default function App() {
           </div>
         ) : (
           <>
-            {/* ② Winner banner — always visible */}
+            {/* ② Priority Banner */}
             <SelectedPriorityBanner
               idea={winnerIdea}
               ideas={enrichedIdeas}
               onSelectIdea={setSelectedIdeaId}
             />
 
-            {/* ③ Primary workspace: 4-col form + 8-col 3D matrix */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6 print:block">
+            {/* ③ Primary workspace: 4-col form (hidden on print) + 8-col 3D matrix (full width on print) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6 print:block print:mb-4">
               <div className="lg:col-span-4 print:hidden">
                 <IdeaInputForm
                   onAddIdea={handleAddIdea}
@@ -148,28 +157,42 @@ export default function App() {
               </div>
             </div>
 
-            {/* ④ Horizontal bar chart — shared selectedIdeaId */}
-            <TotalScoreChart
-              ref={chartRef}
-              enrichedIdeas={enrichedIdeas}
-              selectedIdeaId={selectedIdeaId}
-              onSelectIdea={setSelectedIdeaId}
-            />
+            {/* ④ Side-by-side Analytics Row: Bar Chart (8 cols) + Doughnut Chart (4 cols) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6 print:grid-cols-12 print:gap-4 print:mb-4">
+              <div className="lg:col-span-8 print:col-span-7">
+                <TotalScoreChart
+                  ref={chartRef}
+                  enrichedIdeas={enrichedIdeas}
+                  selectedIdeaId={selectedIdeaId}
+                  onSelectIdea={setSelectedIdeaId}
+                />
+              </div>
+              <div className="lg:col-span-4 print:col-span-5">
+                <QuadrantDoughnutChart
+                  ref={doughnutRef}
+                  enrichedIdeas={enrichedIdeas}
+                  activeFilter={activeFilter}
+                  onFilterQuadrant={setActiveFilter}
+                />
+              </div>
+            </div>
 
-            {/* ⑤ Full LKPD 6 data table with filter, sort & delete */}
+            {/* ⑤ Full LKPD 6 data table with filter sync, sort & print optimization */}
             <IdeaMatrixTable
               enrichedIdeas={enrichedIdeas}
               selectedIdeaId={selectedIdeaId}
               onSelectIdea={setSelectedIdeaId}
               onEditIdea={handleStartEdit}
               onDeleteIdea={handleDeleteIdea}
+              activeFilter={activeFilter}
+              onFilterChange={setActiveFilter}
             />
           </>
         )}
       </main>
 
       {/* Minimal print footer */}
-      <footer className="hidden print:block border-t border-border px-8 py-3 font-mono text-3xs text-muted">
+      <footer className="hidden print:block border-t border-border pt-2 mt-4 font-mono text-[9px] text-muted">
         Aplikasi Validitas Ide UMKM ONLASHOES · LKPD 5&6 · Kelas XI PPLG 2 · KIK 2026/2027
       </footer>
     </div>

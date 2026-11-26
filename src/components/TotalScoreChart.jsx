@@ -179,7 +179,7 @@ const TotalScoreChart = forwardRef(function TotalScoreChart(
   }), [sorted, selectedIdeaId, onSelectIdea]);
 
   return (
-    <section aria-label="Grafik Total Skor" className="surface-card print-card mb-6 overflow-hidden">
+    <section aria-label="Grafik Total Skor" className="surface-card print-card h-full flex flex-col overflow-hidden">
       <div className="px-5 py-3.5 border-b border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
           <span className="font-mono text-2xs uppercase tracking-widest text-brand font-semibold block mb-0.5">
@@ -200,7 +200,7 @@ const TotalScoreChart = forwardRef(function TotalScoreChart(
               <span className="font-mono text-3xs uppercase text-muted">{QUADRANT_META[q]?.label ?? q}</span>
             </div>
           ))}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 print:hidden">
             <span className="inline-block w-2.5 h-2.5 bg-brand border border-brand" />
             <span className="font-mono text-3xs uppercase text-muted">Dipilih</span>
           </div>
@@ -208,7 +208,7 @@ const TotalScoreChart = forwardRef(function TotalScoreChart(
       </div>
 
       {/* Interactive Chart (screen only) */}
-      <div className="p-4 sm:p-5 print:hidden">
+      <div className="p-4 sm:p-5 flex-1 print:hidden">
         <div className="h-[360px] w-full">
           <Bar ref={chartRef} data={data} options={options} />
         </div>

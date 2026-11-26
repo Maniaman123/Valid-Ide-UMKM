@@ -16,9 +16,23 @@ export default function IdeaMatrixTable({
   onSelectIdea,
   onEditIdea,
   onDeleteIdea,
+  activeFilter: controlledFilter,
+  onFilterChange,
 }) {
-  const [activeFilter, setActiveFilter] = useState('Semua');
+  const [internalFilter, setInternalFilter] = useState('Semua');
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
+
+  const activeFilter = controlledFilter ?? internalFilter;
+  const setActiveFilter = useCallback(
+    (next) => {
+      if (onFilterChange) {
+        onFilterChange(next);
+      } else {
+        setInternalFilter(next);
+      }
+    },
+    [onFilterChange],
+  );
 
   const counts = useMemo(() => {
     const c = { Semua: enrichedIdeas.length };
@@ -46,18 +60,29 @@ export default function IdeaMatrixTable({
   }, [pendingDeleteId, onDeleteIdea]);
 
   return (
-    <section aria-label="Tabel Matriks Ide LKPD 6" className="surface-card mb-6 overflow-hidden">
+    <section
+      aria-label="Tabel Matriks Ide LKPD 6"
+      className="surface-card mb-6 overflow-hidden print:overflow-visible"
+      data-allow-page-break="true"
+    >
       {/* Header */}
-      <div className="px-5 py-3.5 border-b border-border">
-        <span className="font-mono text-2xs uppercase tracking-widest text-brand font-semibold block mb-0.5">
-          DATA LENGKAP LKPD 6
-        </span>
-        <h3 className="text-sm font-bold text-ink">Tabel Matriks Prioritas Ide ONLASHOES</h3>
+      <div className="px-5 py-3.5 border-b border-border flex items-center justify-between gap-2">
+        <div>
+          <span className="font-mono text-2xs uppercase tracking-widest text-brand font-semibold block mb-0.5">
+            DATA LENGKAP LKPD 6
+          </span>
+          <h3 className="text-sm font-bold text-ink">Tabel Matriks Prioritas Ide ONLASHOES</h3>
+        </div>
+        {activeFilter !== 'Semua' && (
+          <span className="hidden print:inline-block font-mono text-[10px] text-muted uppercase">
+            Filter: {QUADRANT_META[activeFilter]?.label ?? activeFilter}
+          </span>
+        )}
       </div>
 
-      {/* Filter tabs */}
+      {/* Filter tabs (screen only) */}
       <div
-        className="flex flex-wrap items-center gap-1 px-5 py-2.5 border-b border-border bg-sand print-hide"
+        className="flex flex-wrap items-center gap-1 px-5 py-2.5 border-b border-border bg-sand print-hide print:hidden"
         role="tablist"
         aria-label="Filter Kuadran"
       >
@@ -82,15 +107,17 @@ export default function IdeaMatrixTable({
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-xs border-collapse" aria-label="Tabel ide inovasi LKPD 6">
+      <div className="overflow-x-auto print:overflow-visible">
+        <table className="w-full text-xs print:text-[10px] border-collapse" aria-label="Tabel ide inovasi LKPD 6">
           <thead>
             <tr className="bg-sand text-left">
               {['No', 'Nama Ide Fitur (ONLASHOES)', 'SCAMPER', 'F', 'I', 'Skor', 'Kuadran', 'Aksi'].map((h) => (
                 <th
                   key={h}
                   scope="col"
-                  className="px-3 py-2.5 font-mono text-2xs uppercase tracking-wider text-ink font-semibold border-b border-border whitespace-nowrap"
+                  className={`px-3 py-2.5 font-mono text-2xs print:text-[9px] uppercase tracking-wider text-ink font-semibold border-b border-border whitespace-nowrap ${
+                    h === 'Aksi' ? 'print-hide print:hidden' : ''
+                  }`}
                 >
                   {h}
                 </th>
@@ -119,11 +146,11 @@ export default function IdeaMatrixTable({
                     <td className="px-3 py-2.5 font-mono font-semibold text-muted whitespace-nowrap">
                       {idea.code}
                     </td>
-                    <td className="px-3 py-2.5 text-ink font-medium max-w-[280px] break-words">
+                    <td className="px-3 py-2.5 text-ink font-medium max-w-[280px] print:max-w-none break-words">
                       <span className="font-semibold leading-snug block break-words">{idea.title}</span>
                       {(idea.description || idea.justification) && (
-                        <p className="font-sans text-2xs text-muted leading-tight mt-1 line-clamp-2 break-words">
-                          {idea.description || idea.justification} 
+                        <p className="font-sans text-2xs print:text-[9px] text-muted leading-tight mt-1 line-clamp-2 print:line-clamp-none break-words">
+                          {idea.description || idea.justification}
                         </p>
                       )}
                     </td>
@@ -155,7 +182,7 @@ export default function IdeaMatrixTable({
                         F:{idea.feasibilityLevel} I:{idea.impactLevel}
                       </span>
                     </td>
-                    <td className="px-3 py-2.5 whitespace-nowrap print-hide">
+                    <td className="px-3 py-2.5 whitespace-nowrap print-hide print:hidden">
                       <div className="flex items-center gap-1.5">
                         <button
                           type="button"
@@ -191,21 +218,16 @@ export default function IdeaMatrixTable({
                   {filtered.length} Ide Ditampilkan
                 </td>
                 <td className="px-3 py-2 font-mono font-bold text-xs text-ink text-center tabular-nums">
-                  {filtered.length > 0
-                    ? (filtered.reduce((s, i) => s + i.feasibility, 0) / filtered.length).toFixed(1)
-                    : '—'}
+                  {(filtered.reduce((s, i) => s + i.feasibility, 0) / filtered.length).toFixed(1)}
                 </td>
                 <td className="px-3 py-2 font-mono font-bold text-xs text-ink text-center tabular-nums">
-                  {filtered.length > 0
-                    ? (filtered.reduce((s, i) => s + i.impact, 0) / filtered.length).toFixed(1)
-                    : '—'}
+                  {(filtered.reduce((s, i) => s + i.impact, 0) / filtered.length).toFixed(1)}
                 </td>
                 <td className="px-3 py-2 font-mono font-bold text-xs text-ink text-center tabular-nums">
-                  {filtered.length > 0
-                    ? (filtered.reduce((s, i) => s + i.totalScore, 0) / filtered.length).toFixed(1)
-                    : '—'}
+                  {(filtered.reduce((s, i) => s + i.totalScore, 0) / filtered.length).toFixed(1)}
                 </td>
-                <td colSpan={2} className="px-3 py-2 font-mono text-2xs text-muted">Rata-rata Skor</td>
+                <td colSpan={1} className="px-3 py-2 font-mono text-2xs text-muted">Rata-rata Skor</td>
+                <td className="print-hide print:hidden" />
               </tr>
             </tfoot>
           )}
@@ -218,7 +240,7 @@ export default function IdeaMatrixTable({
           role="dialog"
           aria-modal="true"
           aria-labelledby="confirm-delete-title"
-          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-ink/50 backdrop-blur-[1px] print-hide"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-ink/50 backdrop-blur-[1px] print-hide print:hidden"
         >
           <div className="bg-surface border border-border max-w-sm w-full p-6 shadow-2xl relative z-[10000]">
             <span className="font-mono text-2xs uppercase tracking-widest text-brand font-semibold block mb-1">
@@ -252,4 +274,3 @@ export default function IdeaMatrixTable({
     </section>
   );
 }
-

@@ -132,7 +132,7 @@ export default function SurveyReportSection({ enrichedIdeas = [], quadrantGroups
         </h3>
 
         {REFLECTIONS.map(({ no, question, answer }) => (
-          <div key={no} className="grid grid-cols-1 sm:grid-cols-12 gap-3 sm:gap-6">
+          <div key={no} className="grid grid-cols-1 sm:grid-cols-12 gap-3 sm:gap-6 break-inside-avoid print:break-inside-avoid">
             {/* Question */}
             <div className="sm:col-span-4">
               <div className="flex items-start gap-2">

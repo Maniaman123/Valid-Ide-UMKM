@@ -15,7 +15,7 @@ export default function TopBar({ onReset, isResetting, onPrint }) {
 
   return (
     <>
-      <header className="w-full bg-surface border-b border-border print-hide">
+      <header className="w-full bg-surface border-b border-border print-hide print:hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           {/* Left Brand & Context */}
           <div className="flex items-center gap-3.5">
