@@ -85,7 +85,12 @@
 @media print {
   @page {
     size: A4 portrait;
-    margin: 18mm 15mm 18mm 15mm;
+    margin: 12mm;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   /* Hide interactive chrome */
@@ -102,22 +107,32 @@
     display: none !important;
   }
 
-  body {
+  body,
+  main {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
     background: #ffffff !important;
     color: #171615 !important;
     font-size: 10pt;
     line-height: 1.5;
   }
 
-  /* Flatten surfaces for print */
+  /* Prevent cards and sections from splitting across pages */
+  section,
+  .print-card,
   .surface-card,
   [class*='shadow'] {
     box-shadow: none !important;
     border: 1px solid #E2DDD5 !important;
     break-inside: avoid;
+    page-break-inside: avoid;
+    overflow: visible !important;
   }
 
-  /* Quadrant matrix: render as a simple 2×2 grid */
+  /* Quadrant matrix: render cleanly */
   [data-quadrant-matrix] {
     page-break-before: auto;
     break-inside: avoid;

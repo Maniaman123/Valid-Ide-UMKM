@@ -5,9 +5,11 @@ import React, {
   useCallback,
   Suspense,
   useEffect,
+  forwardRef,
+  useImperativeHandle,
 } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls, Html } from "@react-three/drei";
+import { OrbitControls, Billboard, Text } from "@react-three/drei";
 import * as THREE from "three";
 import { QUADRANT_META } from "../utils/quadrantLogic";
 
@@ -22,6 +24,10 @@ const FLOOR_Y = 0;
 
 // Board centred at [0,0,0]. toPos(1)=-2.8, toPos(3)=0, toPos(5)=2.8
 const toPos = (v) => (v - 1) * SCALE - ((AXIS_MAX - AXIS_MIN) / 2) * SCALE;
+
+// Centered full-board isometric camera framing for both default view & PDF print snapshot
+const PRINT_CAM_POS = [6.8, 7.6, 6.8];
+const PRINT_CAM_TARGET = [0, 1.2, 0];
 
 // ─── Tiles ───────────────────────────────────────────────────────────────────
 
@@ -71,6 +77,46 @@ function getOffsets(group) {
     const angle = (2 * Math.PI * i) / n;
     return [Math.cos(angle) * 0.22, Math.sin(angle) * 0.22];
   });
+}
+
+// ─── Reusable WebGL Badge Label (Billboard + Backing Plane + Text) ───────────
+
+function WebGLBadge({
+  position,
+  text,
+  width = 1.6,
+  height = 0.28,
+  bgColor = "#FFFFFF",
+  borderColor = "#E2DDD5",
+  textColor = "#171615",
+  fontSize = 0.13,
+  fontWeight = "bold",
+}) {
+  return (
+    <Billboard position={position} follow>
+      {/* Border backing plane */}
+      <mesh position={[0, 0, -0.012]}>
+        <planeGeometry args={[width + 0.035, height + 0.035]} />
+        <meshBasicMaterial color={borderColor} />
+      </mesh>
+      {/* Inner fill plane */}
+      <mesh position={[0, 0, -0.004]}>
+        <planeGeometry args={[width, height]} />
+        <meshBasicMaterial color={bgColor} />
+      </mesh>
+      {/* Crisp WebGL Text */}
+      <Text
+        position={[0, 0, 0.01]}
+        fontSize={fontSize}
+        fontWeight={fontWeight}
+        color={textColor}
+        anchorX="center"
+        anchorY="middle"
+      >
+        {text}
+      </Text>
+    </Billboard>
+  );
 }
 
 // ─── Quadrant floor tiles ─────────────────────────────────────────────────────
@@ -150,7 +196,7 @@ function DividerWalls() {
   );
 }
 
-// ─── Axis grid & labels ───────────────────────────────────────────────────────
+// ─── Axis grid & native WebGL labels ──────────────────────────────────────────
 
 function AxisGrid() {
   const halfLen = ((AXIS_MAX - AXIS_MIN) / 2) * SCALE;
@@ -176,115 +222,71 @@ function AxisGrid() {
         <meshStandardMaterial color="#171615" roughness={1} />
       </mesh>
 
-      {/* X tick marks + labels */}
+      {/* X tick marks + native WebGL labels */}
       {ticks.map((v) => (
         <group key={`xt-${v}`} position={[toPos(v), FLOOR_Y, -halfLen - 0.3]}>
           <mesh rotation={[Math.PI / 2, 0, 0]}>
             <cylinderGeometry args={[0.012, 0.012, 0.12, 6]} />
             <meshStandardMaterial color="#171615" roughness={1} />
           </mesh>
-          <Html
-            center
-            distanceFactor={6}
-            zIndexRange={[10, 0]}
-            style={{ pointerEvents: "none" }}
-          >
-            <span
-              style={{
-                fontFamily: '"JetBrains Mono", monospace',
-                fontSize: "10px",
-                fontWeight: "700",
-                color: "#171615",
-                whiteSpace: "nowrap",
-              }}
+          <Billboard position={[0, 0.14, -0.22]} follow>
+            <Text
+              fontSize={0.14}
+              fontWeight="bold"
+              color="#171615"
+              anchorX="center"
+              anchorY="middle"
             >
-              {v}
-            </span>
-          </Html>
+              {String(v)}
+            </Text>
+          </Billboard>
         </group>
       ))}
 
-      {/* Z tick marks + labels */}
+      {/* Z tick marks + native WebGL labels */}
       {ticks.map((v) => (
         <group key={`zt-${v}`} position={[-halfLen - 0.3, FLOOR_Y, toPos(v)]}>
           <mesh rotation={[0, 0, Math.PI / 2]}>
             <cylinderGeometry args={[0.012, 0.012, 0.12, 6]} />
             <meshStandardMaterial color="#171615" roughness={1} />
           </mesh>
-          <Html
-            center
-            distanceFactor={6}
-            zIndexRange={[10, 0]}
-            style={{ pointerEvents: "none" }}
-          >
-            <span
-              style={{
-                fontFamily: '"JetBrains Mono", monospace',
-                fontSize: "10px",
-                fontWeight: "700",
-                color: "#171615",
-                whiteSpace: "nowrap",
-              }}
+          <Billboard position={[-0.22, 0.14, 0]} follow>
+            <Text
+              fontSize={0.14}
+              fontWeight="bold"
+              color="#171615"
+              anchorX="center"
+              anchorY="middle"
             >
-              {v}
-            </span>
-          </Html>
+              {String(v)}
+            </Text>
+          </Billboard>
         </group>
       ))}
 
-      {/* FEASIBILITY axis label */}
-      <Html
-        position={[0, FLOOR_Y, -halfLen - 1.1]}
-        center
-        distanceFactor={5}
-        zIndexRange={[10, 0]}
-        style={{ pointerEvents: "none" }}
-      >
-        <div
-          style={{
-            fontFamily: '"JetBrains Mono", monospace',
-            fontSize: "10px",
-            fontWeight: "700",
-            color: "#FFFFFF",
-            backgroundColor: "#059669",
-            border: "1px solid #86EFAC",
-            padding: "2px 8px",
-            whiteSpace: "nowrap",
-            textTransform: "uppercase",
-            letterSpacing: "0.08em",
-            lineHeight: 1.5,
-          }}
-        >
-          FEASIBILITY (1–5)
-        </div>
-      </Html>
+      {/* FEASIBILITY axis badge */}
+      <WebGLBadge
+        position={[0, FLOOR_Y + 0.18, -halfLen - 0.95]}
+        text="FEASIBILITY (1–5)"
+        width={1.85}
+        height={0.3}
+        bgColor="#059669"
+        borderColor="#86EFAC"
+        textColor="#FFFFFF"
+        fontSize={0.13}
+      />
 
-      {/* IMPACT axis label */}
-      <Html
-        position={[-halfLen - 1.2, FLOOR_Y, 0]}
-        center
-        distanceFactor={5}
-        zIndexRange={[10, 0]}
-        style={{ pointerEvents: "none" }}
-      >
-        <div
-          style={{
-            fontFamily: '"JetBrains Mono", monospace',
-            fontSize: "10px",
-            fontWeight: "700",
-            color: "#FFFFFF",
-            backgroundColor: "#2563EB",
-            border: "1px solid #93C5FD",
-            padding: "2px 8px",
-            whiteSpace: "nowrap",
-            textTransform: "uppercase",
-            letterSpacing: "0.08em",
-            lineHeight: 1.5,
-          }}
-        >
-          IMPACT (1–5)
-        </div>
-      </Html>
+      {/* IMPACT axis badge */}
+      <WebGLBadge
+        position={[-halfLen - 1.05, FLOOR_Y + 0.18, 0]}
+        text="IMPACT (1–5)"
+        width={1.45}
+        height={0.3}
+        bgColor="#2563EB"
+        borderColor="#93C5FD"
+        textColor="#FFFFFF"
+        fontSize={0.13}
+      />
 
       {/* Quadrant zone labels */}
       {[
@@ -293,29 +295,17 @@ function AxisGrid() {
         { id: "PERTIMBANGKAN", x: 4.25, z: 2.0, color: "#D97706" },
         { id: "TUNDA", x: 2.0, z: 2.0, color: "#64748B" },
       ].map(({ id, x, z, color }) => (
-        <Html
-          key={id}
-          position={[toPos(x), FLOOR_Y + 0.04, toPos(z)]}
-          center
-          distanceFactor={7}
-          zIndexRange={[10, 0]}
-          style={{ pointerEvents: "none" }}
-        >
-          <span
-            style={{
-              fontFamily: '"JetBrains Mono", monospace',
-              fontSize: "8px",
-              fontWeight: "700",
-              color,
-              whiteSpace: "nowrap",
-              textTransform: "uppercase",
-              letterSpacing: "0.06em",
-              opacity: 0.9,
-            }}
+        <Billboard key={id} position={[toPos(x), FLOOR_Y + 0.08, toPos(z)]} follow>
+          <Text
+            fontSize={0.14}
+            fontWeight="bold"
+            color={color}
+            anchorX="center"
+            anchorY="middle"
           >
             {id}
-          </span>
-        </Html>
+          </Text>
+        </Billboard>
       ))}
 
       {/* ─── Y-Axis Ruler: Total Score (2–10) ─────────────────────────── */}
@@ -355,7 +345,7 @@ function AxisGrid() {
         </group>
       ))}
 
-      {/* Y score ticks & numbers (2–10) */}
+      {/* Y score ticks & WebGL numbers (2–10) */}
       {[2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => {
         const y = score * Y_SCALE;
         const isMax = score === 10;
@@ -372,63 +362,45 @@ function AxisGrid() {
                 roughness={1}
               />
             </mesh>
-            <Html
-              position={[-0.16, 0, -0.16]}
-              center
-              distanceFactor={5.5}
-              zIndexRange={[10, 0]}
-              style={{ pointerEvents: "none" }}
-            >
-              <span
-                style={{
-                  fontFamily: '"JetBrains Mono", monospace',
-                  fontSize: isMax ? "10px" : isEven ? "9px" : "8px",
-                  fontWeight: isMax ? "800" : isEven ? "700" : "500",
-                  color: isMax ? "#C85A32" : isEven ? "#171615" : "#6B655E",
-                  backgroundColor: isMax
-                    ? "rgba(200,90,50,0.10)"
-                    : "transparent",
-                  border: isMax ? "1px solid #C85A32" : "none",
-                  padding: isMax ? "1px 4px" : "0",
-                  borderRadius: "2px",
-                  whiteSpace: "nowrap",
-                  lineHeight: 1,
-                  display: "inline-block",
-                }}
-              >
-                {score}
-              </span>
-            </Html>
+            {isMax ? (
+              <WebGLBadge
+                position={[-0.24, 0, -0.24]}
+                text="10"
+                width={0.32}
+                height={0.22}
+                bgColor="#FDF3EE"
+                borderColor="#C85A32"
+                textColor="#C85A32"
+                fontSize={0.13}
+              />
+            ) : (
+              <Billboard position={[-0.22, 0, -0.22]} follow>
+                <Text
+                  fontSize={isEven ? 0.12 : 0.10}
+                  fontWeight={isEven ? "bold" : "normal"}
+                  color={isEven ? "#171615" : "#6B655E"}
+                  anchorX="center"
+                  anchorY="middle"
+                >
+                  {String(score)}
+                </Text>
+              </Billboard>
+            )}
           </group>
         );
       })}
 
       {/* Y axis title badge */}
-      <Html
+      <WebGLBadge
         position={[-halfLen - 0.3, 10 * Y_SCALE + 0.42, -halfLen - 0.3]}
-        center
-        distanceFactor={5}
-        zIndexRange={[10, 0]}
-        style={{ pointerEvents: "none" }}
-      >
-        <div
-          style={{
-            fontFamily: '"JetBrains Mono", monospace',
-            fontSize: "10px",
-            fontWeight: "700",
-            color: "#FFFFFF",
-            backgroundColor: "#C85A32",
-            border: "1px solid #FDBA74",
-            padding: "2px 8px",
-            whiteSpace: "nowrap",
-            textTransform: "uppercase",
-            letterSpacing: "0.08em",
-            lineHeight: 1.5,
-          }}
-        >
-          TOTAL SKOR (2–10)
-        </div>
-      </Html>
+        text="TOTAL SKOR (2–10)"
+        width={1.85}
+        height={0.3}
+        bgColor="#C85A32"
+        borderColor="#FDBA74"
+        textColor="#FFFFFF"
+        fontSize={0.13}
+      />
     </group>
   );
 }
@@ -454,17 +426,21 @@ function IdeaNode({
 
   const meta = QUADRANT_META[idea.quadrant];
   const baseColor = meta?.hex ?? "#64748B";
-  const color = isSelected || isHovered ? "#C85A32" : baseColor;
+  const active = isSelected || isHovered;
+  const color = active ? "#C85A32" : baseColor;
 
   useFrame((state) => {
     if (!headRef.current) return;
-    if (isSelected || isHovered) {
+    if (active) {
       headRef.current.position.y =
         height + Math.sin(state.clock.elapsedTime * 2.5) * 0.06;
     } else {
       headRef.current.position.y = height;
     }
   });
+
+  const codeLabel = String(idea.code ?? "");
+  const badgeW = Math.max(0.36, codeLabel.length * 0.11 + 0.14);
 
   return (
     <group
@@ -486,7 +462,7 @@ function IdeaNode({
       <mesh position={[0, stemH / 2, 0]}>
         <cylinderGeometry args={[0.025, 0.035, stemH, 10]} />
         <meshStandardMaterial
-          color={isSelected || isHovered ? "#C85A32" : "#B5AEA4"}
+          color={active ? "#C85A32" : "#B5AEA4"}
           roughness={0.9}
           metalness={0.05}
         />
@@ -540,54 +516,41 @@ function IdeaNode({
         )}
       </group>
 
-      {/* Code pin */}
-      <Html
-        position={[0, height + 0.38, 0]}
-        center
-        distanceFactor={5}
-        zIndexRange={[10, 0]}
-        style={{ pointerEvents: "none" }}
-      >
-        <div
-          style={{
-            fontFamily: '"JetBrains Mono", monospace',
-            fontSize: isSelected || isHovered ? "11px" : "9px",
-            fontWeight: "700",
-            color: isSelected || isHovered ? "#C85A32" : "#171615",
-            backgroundColor: "#FFFFFF",
-            border: `1px solid ${isSelected || isHovered ? "#C85A32" : "#E2DDD5"}`,
-            padding: "1px 5px",
-            whiteSpace: "nowrap",
-            lineHeight: 1.5,
-          }}
-        >
-          {idea.code}
-        </div>
-      </Html>
+      {/* Native WebGL Billboard Code Pin */}
+      <WebGLBadge
+        position={[0, height + 0.36, 0]}
+        text={codeLabel}
+        width={badgeW}
+        height={0.22}
+        bgColor="#FFFFFF"
+        borderColor={active ? "#C85A32" : "#E2DDD5"}
+        textColor={active ? "#C85A32" : "#171615"}
+        fontSize={active ? 0.13 : 0.11}
+      />
     </group>
   );
 }
 
-// ─── Camera Controller (isometric only, useRef-based — no React re-renders) ───
+// ─── Camera Controller & Print Snapshot Bridge ────────────────────────────────
 
 const _camAnimating = { current: false };
 
-function CameraController({ orbitRef }) {
-  const { camera } = useThree();
-  const targetPos = useRef(new THREE.Vector3(6.2, 7.6, 6.2));
-  const targetLook = useRef(new THREE.Vector3(0, 1.8, 0));
+function CameraController({ orbitRef, onBridgeReady }) {
+  const { camera, gl, scene } = useThree();
+  const targetPos = useRef(new THREE.Vector3(...PRINT_CAM_POS));
+  const targetLook = useRef(new THREE.Vector3(...PRINT_CAM_TARGET));
 
   // Initial fly-in on mount
   useEffect(() => {
-    camera.position.set(6.2, 12, 6.2);
+    camera.position.set(PRINT_CAM_POS[0], 12, PRINT_CAM_POS[2]);
     _camAnimating.current = true;
-  }, []);
+  }, [camera]);
 
   useFrame(() => {
     if (!_camAnimating.current) return;
-    camera.position.lerp(targetPos.current, 0.07);
+    camera.position.lerp(targetPos.current, 0.08);
     if (orbitRef.current) {
-      orbitRef.current.target.lerp(targetLook.current, 0.07);
+      orbitRef.current.target.lerp(targetLook.current, 0.08);
       orbitRef.current.update();
     } else {
       camera.lookAt(targetLook.current);
@@ -601,6 +564,49 @@ function CameraController({ orbitRef }) {
       _camAnimating.current = false;
     }
   });
+
+  // Expose synchronous + frame-synced snapshot function
+  useEffect(() => {
+    const capture = async ({ syncOnly = false } = {}) => {
+      const prevPos = camera.position.clone();
+      const prevTarget = orbitRef.current
+        ? orbitRef.current.target.clone()
+        : new THREE.Vector3(...PRINT_CAM_TARGET);
+      const prevAnimating = _camAnimating.current;
+
+      _camAnimating.current = false;
+      camera.position.set(...PRINT_CAM_POS);
+      if (orbitRef.current) {
+        orbitRef.current.target.set(...PRINT_CAM_TARGET);
+        orbitRef.current.update();
+      } else {
+        camera.lookAt(...PRINT_CAM_TARGET);
+      }
+      camera.updateProjectionMatrix();
+      camera.updateMatrixWorld();
+
+      if (!syncOnly) {
+        // Wait 2 animation frames so Billboard quaternions orient to PRINT_CAM_POS
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      }
+
+      gl.render(scene, camera);
+      const dataUrl = gl.domElement.toDataURL("image/png");
+
+      // Restore interactive user camera state
+      camera.position.copy(prevPos);
+      if (orbitRef.current) {
+        orbitRef.current.target.copy(prevTarget);
+        orbitRef.current.update();
+      }
+      _camAnimating.current = prevAnimating;
+      gl.render(scene, camera);
+
+      return dataUrl;
+    };
+
+    onBridgeReady?.(capture);
+  }, [camera, gl, scene, orbitRef, onBridgeReady]);
 
   return null;
 }
@@ -668,13 +674,58 @@ function InspectionCard({ idea }) {
 
 // ─── Main exported component ──────────────────────────────────────────────────
 
-export default function Quadrant3DMatrix({
-  enrichedIdeas = [],
-  selectedIdeaId,
-  onSelectIdea,
-}) {
+const Quadrant3DMatrix = forwardRef(function Quadrant3DMatrix(
+  { enrichedIdeas = [], selectedIdeaId, onSelectIdea },
+  ref,
+) {
   const [hoveredIdea, setHoveredIdea] = useState(null);
+  const [matrixPrintImg, setMatrixPrintImg] = useState(null);
   const orbitRef = useRef();
+  const captureFnRef = useRef(null);
+
+  const handleBridgeReady = useCallback((fn) => {
+    captureFnRef.current = fn;
+  }, []);
+
+  const capturePrintSnapshot = useCallback(async (opts = {}) => {
+    if (!captureFnRef.current) return null;
+    try {
+      const dataUrl = await captureFnRef.current(opts);
+      if (dataUrl) {
+        setMatrixPrintImg(dataUrl);
+      }
+      return dataUrl;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      capturePrintSnapshot,
+    }),
+    [capturePrintSnapshot],
+  );
+
+  // Sync print snapshot on Ctrl+P (beforeprint)
+  useEffect(() => {
+    const onBeforePrint = () => {
+      capturePrintSnapshot({ syncOnly: true });
+    };
+    window.addEventListener("beforeprint", onBeforePrint);
+    return () => {
+      window.removeEventListener("beforeprint", onBeforePrint);
+    };
+  }, [capturePrintSnapshot]);
+
+  // Keep a warm fallback snapshot ready whenever ideas/selection updates
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      capturePrintSnapshot();
+    }, 650);
+    return () => clearTimeout(timer);
+  }, [enrichedIdeas, selectedIdeaId, capturePrintSnapshot]);
 
   const nodesWithOffsets = useMemo(() => {
     const groups = {};
@@ -709,30 +760,37 @@ export default function Quadrant3DMatrix({
   const inspectionIdea =
     hoveredIdea ?? enrichedIdeas.find((i) => i.id === selectedIdeaId) ?? null;
 
+  const LEGEND_ITEMS = [
+    { label: "Prioritas Utama", color: "#059669", shape: "◆" },
+    { label: "Potensi", color: "#2563EB", shape: "●" },
+    { label: "Pertimbangkan", color: "#D97706", shape: "▬" },
+    { label: "Tunda", color: "#64748B", shape: "■" },
+  ];
+
   return (
     <section
       aria-label="Matriks 3D Kuadran LKPD 6"
-      className="surface-card mb-6 overflow-hidden relative z-0 isolate"
+      className="surface-card print-card mb-6 overflow-hidden relative z-0 isolate"
     >
       {/* Card header */}
-      <div className="px-5 py-3.5 border-b border-border print-hide">
+      <div className="px-5 py-3.5 border-b border-border">
         <span className="font-mono text-2xs uppercase tracking-widest text-brand font-semibold block mb-0.5">
           MATRIKS PRIORITAS 3D — LKPD 6
         </span>
         <h3 className="text-sm font-bold text-ink">
           Visualisasi Kuadran Keterlaksanaan × Dampak × Total Skor
         </h3>
-        <p className="font-mono text-3xs text-muted mt-0.5 uppercase tracking-wider">
+        <p className="font-mono text-3xs text-muted mt-0.5 uppercase tracking-wider print:hidden">
           Seret untuk memutar · Scroll untuk zoom · Klik pin untuk inspeksi
         </p>
       </div>
 
-      {/* 3D Canvas */}
-      <div className="relative w-full isolate z-0" style={{ height: "520px" }}>
+      {/* Interactive 3D Canvas (screen only) */}
+      <div className="print:hidden relative w-full h-[460px] isolate z-0">
         <Canvas
-          camera={{ position: [6.2, 12, 6.2], fov: 40 }}
+          camera={{ position: [PRINT_CAM_POS[0], 12, PRINT_CAM_POS[2]], fov: 40 }}
           shadows={false}
-          gl={{ antialias: true, alpha: false }}
+          gl={{ preserveDrawingBuffer: true, antialias: true, alpha: false }}
           dpr={[1, 2]}
         >
           <color attach="background" args={["#F7F5F0"]} />
@@ -782,20 +840,18 @@ export default function Quadrant3DMatrix({
               _camAnimating.current = false;
             }}
           />
-          <CameraController orbitRef={orbitRef} />
+          <CameraController
+            orbitRef={orbitRef}
+            onBridgeReady={handleBridgeReady}
+          />
         </Canvas>
 
         {/* Inspection card */}
         <InspectionCard idea={inspectionIdea} />
 
-        {/* Legend */}
-        <div className="absolute bottom-3 left-3 flex items-center gap-2 print-hide">
-          {[
-            { label: "Prioritas Utama", color: "#059669", shape: "◆" },
-            { label: "Potensi", color: "#2563EB", shape: "●" },
-            { label: "Pertimbangkan", color: "#D97706", shape: "▬" },
-            { label: "Tunda", color: "#64748B", shape: "■" },
-          ].map(({ label, color, shape }) => (
+        {/* Interactive Legend */}
+        <div className="absolute bottom-3 left-3 flex items-center gap-2 print:hidden">
+          {LEGEND_ITEMS.map(({ label, color, shape }) => (
             <div
               key={label}
               className="flex items-center gap-1 bg-surface/90 border border-border px-2 py-0.5"
@@ -808,6 +864,32 @@ export default function Quadrant3DMatrix({
           ))}
         </div>
       </div>
+
+      {/* Print-only Centered WebGL Snapshot */}
+      {matrixPrintImg && (
+        <div className="hidden print:flex flex-col items-center justify-center w-full py-3 px-4">
+          <img
+            src={matrixPrintImg}
+            alt="Visualisasi Matriks Kuadran 3D"
+            className="w-full max-w-[660px] mx-auto h-auto object-contain border border-[#E2DDD5]"
+          />
+          <div className="flex flex-wrap items-center justify-center gap-3 mt-2.5">
+            {LEGEND_ITEMS.map(({ label, color, shape }) => (
+              <div
+                key={label}
+                className="flex items-center gap-1 bg-surface border border-border px-2 py-0.5"
+              >
+                <span style={{ color, fontSize: "10px" }}>{shape}</span>
+                <span className="font-mono text-3xs text-ink uppercase">
+                  {label}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </section>
   );
-}
+});
+
+export default Quadrant3DMatrix;

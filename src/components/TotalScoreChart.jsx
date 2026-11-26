@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef, useState, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -20,7 +20,13 @@ const QUADRANT_COLORS = {
   'TUNDA':           '#64748B',
 };
 
-export default function TotalScoreChart({ enrichedIdeas = [], selectedIdeaId, onSelectIdea }) {
+const TotalScoreChart = forwardRef(function TotalScoreChart(
+  { enrichedIdeas = [], selectedIdeaId, onSelectIdea },
+  ref,
+) {
+  const chartRef = useRef(null);
+  const [printImage, setPrintImage] = useState(null);
+
   const sorted = useMemo(
     () => [...enrichedIdeas].sort((a, b) => {
       const numA = parseInt(a.code?.replace('#', '') ?? '0', 10);
@@ -29,6 +35,48 @@ export default function TotalScoreChart({ enrichedIdeas = [], selectedIdeaId, on
     }),
     [enrichedIdeas],
   );
+
+  const capturePrintSnapshot = useCallback(() => {
+    const chartInstance = chartRef.current;
+    if (!chartInstance || typeof chartInstance.toBase64Image !== 'function') return null;
+    try {
+      const dataUrl = chartInstance.toBase64Image('image/png', 1);
+      if (dataUrl) {
+        setPrintImage((prev) => (prev === dataUrl ? prev : dataUrl));
+      }
+      return dataUrl;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  useImperativeHandle(ref, () => ({
+    capturePrintSnapshot,
+  }), [capturePrintSnapshot]);
+
+  // Capture on beforeprint and resize back on afterprint
+  useEffect(() => {
+    const handleBeforePrint = () => {
+      capturePrintSnapshot();
+    };
+    const handleAfterPrint = () => {
+      chartRef.current?.resize?.();
+    };
+    window.addEventListener('beforeprint', handleBeforePrint);
+    window.addEventListener('afterprint', handleAfterPrint);
+    return () => {
+      window.removeEventListener('beforeprint', handleBeforePrint);
+      window.removeEventListener('afterprint', handleAfterPrint);
+    };
+  }, [capturePrintSnapshot]);
+
+  // Re-capture snapshot cleanly whenever data or selection updates
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      capturePrintSnapshot();
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [sorted, selectedIdeaId, capturePrintSnapshot]);
 
   const data = useMemo(() => ({
     labels: sorted.map((idea) => idea.code),
@@ -57,7 +105,20 @@ export default function TotalScoreChart({ enrichedIdeas = [], selectedIdeaId, on
     indexAxis: 'y',
     responsive: true,
     maintainAspectRatio: false,
-    animation: { duration: 300 },
+    animation: {
+      duration: 300,
+      onComplete: () => {
+        const inst = chartRef.current;
+        if (inst && typeof inst.toBase64Image === 'function') {
+          try {
+            const url = inst.toBase64Image('image/png', 1);
+            if (url) setPrintImage((prev) => (prev === url ? prev : url));
+          } catch {
+            // ignore canvas read error
+          }
+        }
+      },
+    },
     onClick: (_evt, elements) => {
       if (!elements.length) return;
       const idx = elements[0].index;
@@ -118,7 +179,7 @@ export default function TotalScoreChart({ enrichedIdeas = [], selectedIdeaId, on
   }), [sorted, selectedIdeaId, onSelectIdea]);
 
   return (
-    <section aria-label="Grafik Total Skor" className="surface-card mb-6 overflow-hidden">
+    <section aria-label="Grafik Total Skor" className="surface-card print-card mb-6 overflow-hidden">
       <div className="px-5 py-3.5 border-b border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
           <span className="font-mono text-2xs uppercase tracking-widest text-brand font-semibold block mb-0.5">
@@ -145,13 +206,30 @@ export default function TotalScoreChart({ enrichedIdeas = [], selectedIdeaId, on
           </div>
         </div>
       </div>
-      <div className="p-4 sm:p-5" style={{ height: `${Math.max(sorted.length * 36 + 60, 220)}px` }}>
-        <Bar data={data} options={options} />
+
+      {/* Interactive Chart (screen only) */}
+      <div className="p-4 sm:p-5 print:hidden">
+        <div className="h-[360px] w-full">
+          <Bar ref={chartRef} data={data} options={options} />
+        </div>
       </div>
-      <p className="px-5 pb-3 font-mono text-3xs text-muted">
+
+      {/* Print-only Full 0-10 Snapshot */}
+      {printImage && (
+        <div className="hidden print:block p-3">
+          <img
+            src={printImage}
+            alt="Grafik Perbandingan Total Skor"
+            className="hidden print:block w-full max-w-[680px] mx-auto h-auto object-contain"
+          />
+        </div>
+      )}
+
+      <p className="px-5 pb-3 font-mono text-3xs text-muted print:hidden">
         Klik batang untuk menyorot ide pada Matriks 3D dan tabel di bawah. Bar berwarna cognac menandakan ide yang sedang dipilih.
       </p>
     </section>
   );
-}
+});
 
+export default TotalScoreChart;

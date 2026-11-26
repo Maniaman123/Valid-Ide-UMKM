@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import TopBar from './components/TopBar';
 import SelectedPriorityBanner from './components/SelectedPriorityBanner';
 import IdeaInputForm from './components/IdeaInputForm';
@@ -14,6 +14,9 @@ export default function App() {
   const [isResetting, setIsResetting]   = useState(false);
   const [selectedIdeaId, setSelectedIdeaId] = useState(null);
   const [editingIdea, setEditingIdea]   = useState(null);
+
+  const matrixRef = useRef(null);
+  const chartRef  = useRef(null);
 
   // ── Bootstrap ───────────────────────────────────────────────────────────
   useEffect(() => {
@@ -88,11 +91,25 @@ export default function App() {
     }
   }, []);
 
+  const handlePrintReport = useCallback(async () => {
+    try {
+      await Promise.all([
+        matrixRef.current?.capturePrintSnapshot?.(),
+        chartRef.current?.capturePrintSnapshot?.(),
+      ]);
+    } catch (err) {
+      console.warn('[App] snapshot capture before print failed:', err);
+    }
+    // Allow React to flush both <img> elements into the DOM before opening print dialog
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    window.print();
+  }, []);
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-canvas text-ink flex flex-col font-sans selection:bg-brand selection:text-surface">
       {/* ① Top navigation bar */}
-      <TopBar onReset={handleReset} isResetting={isResetting} />
+      <TopBar onReset={handleReset} isResetting={isResetting} onPrint={handlePrintReport} />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {isLoading ? (
@@ -111,8 +128,8 @@ export default function App() {
             />
 
             {/* ③ Primary workspace: 4-col form + 8-col 3D matrix */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
-              <div className="lg:col-span-4">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6 print:block">
+              <div className="lg:col-span-4 print:hidden">
                 <IdeaInputForm
                   onAddIdea={handleAddIdea}
                   onUpdateIdea={handleUpdateIdea}
@@ -121,8 +138,9 @@ export default function App() {
                   onHoverIdea={(h) => { if (h) setSelectedIdeaId(h.id ?? null); }}
                 />
               </div>
-              <div className="lg:col-span-8">
+              <div className="lg:col-span-8 print:w-full">
                 <Quadrant3DMatrix
+                  ref={matrixRef}
                   enrichedIdeas={enrichedIdeas}
                   selectedIdeaId={selectedIdeaId}
                   onSelectIdea={setSelectedIdeaId}
@@ -132,6 +150,7 @@ export default function App() {
 
             {/* ④ Horizontal bar chart — shared selectedIdeaId */}
             <TotalScoreChart
+              ref={chartRef}
               enrichedIdeas={enrichedIdeas}
               selectedIdeaId={selectedIdeaId}
               onSelectIdea={setSelectedIdeaId}

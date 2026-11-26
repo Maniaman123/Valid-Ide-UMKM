@@ -5,7 +5,7 @@ import React, { useState } from 'react';
  * Strict Swiss-grid layout with hairline 1px border.
  * Includes explicit modal confirmation for Reset to satisfy accidental-data-loss-prevention.
  */
-export default function TopBar({ onReset, isResetting }) {
+export default function TopBar({ onReset, isResetting, onPrint }) {
   const [showConfirm, setShowConfirm] = useState(false);
 
   const handleConfirmReset = () => {
@@ -58,7 +58,7 @@ export default function TopBar({ onReset, isResetting }) {
 
             <button
               type="button"
-              onClick={() => window.print()}
+              onClick={() => (onPrint ? onPrint() : window.print())}
               className="min-h-touch px-4 py-2 text-xs font-mono tracking-wide uppercase bg-ink text-surface hover:bg-muted focus-visible:outline-2 focus-visible:outline-brand transition-colors"
             >
               Cetak Laporan PDF
